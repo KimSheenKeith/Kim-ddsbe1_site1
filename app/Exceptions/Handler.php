@@ -53,6 +53,13 @@ class Handler extends ExceptionHandler
             $code = $exception->getStatusCode();
             $message = Response::$statusTexts[$code];
             return $this->errorResponse($message, $code);
+        
+            if ($exception instanceof ClientException) {
+                $message = $exception->getResponse()->getBody();
+                $code = $exception->getCode();
+                return $this->errorMessage($message,200);
+                }
+
         }
     // instance not found
         if ($exception instanceof ModelNotFoundException) {
@@ -77,4 +84,6 @@ class Handler extends ExceptionHandler
         }
         return $this->errorResponse('Unexpected error. Try later',Response::HTTP_INTERNAL_SERVER_ERROR);
     }
+
+    
 }

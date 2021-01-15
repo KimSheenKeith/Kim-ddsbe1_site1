@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\UserJob;
+
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use App\Models\User;
 use App\Traits\ApiResponser;
 use DB;
-use App\Models\UserJob;
+
 Class UserController extends Controller {
     use ApiResponser;
 
@@ -29,6 +31,7 @@ Class UserController extends Controller {
         $rules = [
             'username' => 'required|max:20',
             'password' => 'required|max:20',
+            'jobid' => 'required|numeric|min:1|not_in:0',
             
         ];
 
@@ -36,6 +39,7 @@ Class UserController extends Controller {
 
         $this->validate($request,$rules);
 
+        $userjob = UserJob::findOrFail($request->jobid);
         $user = User::create($request->all());
         return $this->successResponse($user, Response::HTTP_CREATED);
     }
@@ -53,29 +57,35 @@ Class UserController extends Controller {
     
     public function update(Request $request,$id)
     {
+        
         $rules = [
-        'username' => 'max:20',
-        'password' => 'max:20',
+ 
+            'username' => 'max:20',
+            'password' => 'max:20',    
+            'jobid' => 'required|numeric|min:1|not_in:0',
+ ];
+
+
+    $this->validate($request, $rules);
+    // validate if Jobid is found in the table tbluserjob
+ 
+    $userjob = UserJob::findOrFail($request->jobid);
+
+    $user = User::findOrFail($id);
+
+    $user->fill($request->all());
+    // if no changes happen
     
-        ];
+    if ($user->isClean()) {
+    
+        return $this->errorResponse('At least one value must change',Response::HTTP_UNPROCESSABLE_ENTITY);
+ }
+    
+ $user->save();
+ 
+ return $this->successResponse($user);
 
-        $this->validate($request, $rules);
-
-        $user = User::findOrFail($id);
-            
-        $user->fill($request->all());
-
-        
-        if ($user->isClean()) {
-            return $this->errorResponse('At least one value must change', Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
-        $user->save();
-        return $this->successResponse($user);
-       
-        
-    }
-
+}
     public function delete($id)
     {
         $user = User::findOrFail($id)->delete();
@@ -83,5 +93,4 @@ Class UserController extends Controller {
 
         
     }
-
 }
