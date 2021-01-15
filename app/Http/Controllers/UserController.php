@@ -7,6 +7,7 @@ use Illuminate\Http\Response;
 use App\Models\User;
 use App\Traits\ApiResponser;
 use DB;
+use App\Models\UserJob;
 Class UserController extends Controller {
     use ApiResponser;
 
@@ -16,73 +17,71 @@ Class UserController extends Controller {
         $this->request = $request;
     }
 
-
-    //To Show all users in the database
     public function getUsers(){
+
         $users = DB::connection('mysql')
         ->select("Select * from tbluser");
-        return response()->json($users, 200);
+        return $this->successResponse($users);
     }
+    
 
-
-
-    //Search user in database
-    public function getUser($id){
-        $user= User::find($id);
-        if($user == null) return response()->json('User does not exist!', 404);
-        return response()->json($user,200);
-    }
-
-
-    // Create a new user
-    public function addUsers(Request $request){
-
+    public function addUser(Request $request ){
         $rules = [
-            'username' => 'required|max:255',
-            'password' => 'required|max:255'
+            'username' => 'required|max:20',
+            'password' => 'required|max:20',
+            
         ];
-
-        $this->validate($request,$rules);
-
-        $users =User::create($request->all());
 
         
-        return $this->successResponse($users,Response::HTTP_CREATED);
-    }
-
-    //Update existing user
-
-    public function updateUsers(Request $request,$id){
-        $rules = [
-            'username' => 'required|max:255',
-            'password' => 'required|max:255'
-        ];
 
         $this->validate($request,$rules);
 
-        $user = User::find($id);
+        $user = User::create($request->all());
+        return $this->successResponse($user, Response::HTTP_CREATED);
+    }
 
-        if ($user == null)return response()->json('Invalid User!', 404);
+    
+    public function show($id)
+    {
 
+         $user = User::findOrFail($id);
+         return $this->successResponse($user);
+         
+       
+    }
+
+    
+    public function update(Request $request,$id)
+    {
+        $rules = [
+        'username' => 'max:20',
+        'password' => 'max:20',
+    
+        ];
+
+        $this->validate($request, $rules);
+
+        $user = User::findOrFail($id);
+            
         $user->fill($request->all());
 
+        
+        if ($user->isClean()) {
+            return $this->errorResponse('At least one value must change', Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         $user->save();
-
-        print ("User has been successfully updated!");
-
         return $this->successResponse($user);
+       
+        
     }
 
-    // Delete existing user
-    
-    public function deleteUsers($id){
-        User::findOrFail($id)->delete();
+    public function delete($id)
+    {
+        $user = User::findOrFail($id)->delete();
+        return response()->json('User deleted successfully',200);
 
-        return response()->json('User has been successfully deleted!', 200);
+        
     }
-
-
-
-
 
 }

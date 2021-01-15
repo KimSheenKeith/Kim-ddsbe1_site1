@@ -17,16 +17,13 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
-// unsecure routes
-$router->get('/login','PageControl@login');
-$router->get('getLogUser','PageControl@getLogUser');
-$router->group(['prefix' => 'api'], function () use ($router) {
-    $router->get('/users',['uses' => 'UserController@getUsers']);
-    $router->get('/users/{id}', 'UserController@getUser');//to search
-    });
+$router->get('/usersjob', 'UserJobController@index');
+$router->get('/userjob/{id}', 'UserJobController@show');
 
 
-$router->post('/users/add','UserController@addUsers');//create new user
-$router->put('/users/update/{id}','UserController@updateUsers');//update existing user
-$router->delete('/users/delete/{id}','UserController@deleteUsers');//delete existing user
-
+$router->get('/users', 'UserController@getUsers');   // get all users records
+$router->post('/users/add', 'UserController@addUser');  // create new user record
+$router->get('/users/{id}', 'UserController@show'); // get user by id
+$router->put('/users/update/{id}', 'UserController@update'); // update user record
+$router->patch('/users/update{id}', 'UserController@update'); // update user record
+$router->delete('/users/delete/{id}', 'UserController@delete'); // delete record
